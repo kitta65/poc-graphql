@@ -4,6 +4,7 @@ const { buildSchema } = require("graphql");
 const { ruruHTML } = require("ruru/server");
 
 let numVisitors = 0;
+const visitors = [];
 
 class Calculator {
   constructor(left) {
@@ -19,6 +20,9 @@ class Calculator {
 }
 
 const schema = buildSchema(`
+  input VisitorInput {
+    id: ID!
+  }
   type Query {
     dummy: String!
     format(in_: String!): String!
@@ -30,7 +34,7 @@ const schema = buildSchema(`
     sub(right: Int!): Int!
   }
   type Mutation {
-    incrementNumVisitors: Int!
+    incrementNumVisitors(visitor: VisitorInput!): Int!
   }`);
 
 const rootValue = {
@@ -46,8 +50,11 @@ const rootValue = {
   getNumVisitors() {
     return numVisitors;
   },
-  incrementNumVisitors() {
-    numVisitors++;
+  incrementNumVisitors({ visitor }) {
+    if (!visitors.includes(visitor.id)) {
+      visitors.push(visitor.id);
+      numVisitors++;
+    }
     return numVisitors;
   },
 };
