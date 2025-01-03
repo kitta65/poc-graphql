@@ -3,10 +3,28 @@ const { createHandler } = require("graphql-http/lib/use/express");
 const { buildSchema } = require("graphql");
 const { ruruHTML } = require("ruru/server");
 
+class Calculator {
+  constructor(left) {
+    this.left = left;
+  }
+
+  add({ right }) {
+    return this.left + right;
+  }
+  sub({ right }) {
+    return this.left - right;
+  }
+}
+
 const schema = buildSchema(`
   type Query {
-    dummy: String
-    format(in_: String!): String
+    dummy: String!
+    format(in_: String!): String!
+    getCalculator(left: Int!): Calculator!
+  }
+  type Calculator {
+    add(right: Int!): Int!
+    sub(right: Int!): Int!
   }`);
 
 const rootValue = {
@@ -15,6 +33,9 @@ const rootValue = {
   },
   format({ in_ }) {
     return in_.trim();
+  },
+  getCalculator({ left }) {
+    return new Calculator(left);
   },
 };
 
