@@ -6,6 +6,11 @@ const { ruruHTML } = require("ruru/server");
 let numVisitors = 0;
 const visitors = [];
 
+function loggingMiddleware(req, _, next) {
+  console.log(req.hostname);
+  next();
+}
+
 class Calculator {
   constructor(left) {
     this.left = left;
@@ -60,7 +65,7 @@ const rootValue = {
 };
 
 const app = express();
-
+app.use(loggingMiddleware);
 app.all("/graphql", createHandler({ schema, rootValue }));
 app.get("/", (_req, res) => {
   res.type("html");
