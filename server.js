@@ -9,6 +9,7 @@ const {
   GraphQLInt,
   GraphQLString,
   GraphQLSchema,
+  printSchema,
 } = require("graphql");
 
 let numVisitors = 0;
@@ -115,6 +116,7 @@ const schema = new GraphQLSchema({
   query: queryType,
   mutation: mutationType,
 });
+console.log(printSchema(schema));
 
 app.all("/graphql", createHandler({ schema }));
 app.get("/", (_req, res) => {
