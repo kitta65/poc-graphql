@@ -1,17 +1,20 @@
 const express = require("express");
 const { createHandler } = require("graphql-http/lib/use/express");
 const { buildSchema } = require("graphql");
-const { ruruHtml, ruruHTML } = require("ruru/server");
+const { ruruHTML } = require("ruru/server");
 
 const schema = buildSchema(`
   type Query {
     dummy: String
-  }
-`);
+    format(in_: String!): String
+  }`);
 
 const rootValue = {
   dummy() {
     return "this is dummy response!";
+  },
+  format({ in_ }) {
+    return in_.trim();
   },
 };
 
