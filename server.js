@@ -1,6 +1,7 @@
 const express = require("express");
 const { createHandler } = require("graphql-http/lib/use/express");
 const { buildSchema } = require("graphql");
+const { ruruHtml, ruruHTML } = require("ruru/server");
 
 const schema = buildSchema(`
   type Query {
@@ -16,7 +17,11 @@ const rootValue = {
 
 const app = express();
 
-app.all("/api", createHandler({ schema, rootValue }));
+app.all("/graphql", createHandler({ schema, rootValue }));
+app.get("/", (_req, res) => {
+  res.type("html");
+  res.end(ruruHTML({ endopoint: "/graphql" }));
+});
 
 const port = 8888;
 app.listen(port);
