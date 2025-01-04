@@ -1,8 +1,9 @@
-const express = require("express");
-const { createHandler } = require("graphql-http/lib/use/express");
-const { ruruHTML } = require("ruru/server");
-const { GraphQLObjectType, GraphQLNonNull, GraphQLInt } = require("graphql");
-const {
+// @ts-nocheck
+import express from "express";
+import { createHandler } from "graphql-http/lib/use/express";
+import { ruruHTML } from "ruru/server";
+import { GraphQLObjectType, GraphQLNonNull, GraphQLInt } from "graphql";
+import {
   nonNull,
   makeSchema,
   objectType,
@@ -10,8 +11,8 @@ const {
   inputObjectType,
   intArg,
   stringArg,
-} = require("nexus");
-const { join } = require("path");
+} from "nexus";
+import { join } from "path";
 
 let numVisitors = 0;
 const visitors = [];
