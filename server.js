@@ -1,16 +1,17 @@
 const express = require("express");
 const { createHandler } = require("graphql-http/lib/use/express");
 const { ruruHTML } = require("ruru/server");
+const { GraphQLObjectType, GraphQLNonNull, GraphQLInt } = require("graphql");
 const {
-  GraphQLObjectType,
-  GraphQLInputObjectType,
-  GraphQLNonNull,
-  GraphQLID,
-  GraphQLInt,
-  GraphQLString,
-  GraphQLSchema,
-  printSchema,
-} = require("graphql");
+  nonNull,
+  makeSchema,
+  objectType,
+  extendType,
+  inputObjectType,
+  intArg,
+  stringArg,
+} = require("nexus");
+const { join } = require("path");
 
 let numVisitors = 0;
 const visitors = [];
@@ -33,70 +34,12 @@ class Calculator {
   }
 }
 
-const visitorInputType = new GraphQLInputObjectType({
-  name: "VisitorInput",
-  fields: {
-    id: { type: new GraphQLNonNull(GraphQLID) },
-  },
-});
-
-const calculatorType = new GraphQLObjectType({
-  name: "Calculator",
-  fields: {
-    add: {
-      type: new GraphQLNonNull(GraphQLInt),
-      args: {
-        right: { type: new GraphQLNonNull(GraphQLInt) },
-      },
-      resolve: (parent, { right }) => parent.add({ right }),
-    },
-    sub: {
-      type: new GraphQLNonNull(GraphQLInt),
-      args: {
-        right: { type: new GraphQLNonNull(GraphQLInt) },
-      },
-      resolve: (parent, { right }) => parent.sub({ right }),
-    },
-  },
-});
-
-const queryType = new GraphQLObjectType({
-  name: "Query",
-  fields: {
-    dummy: { type: new GraphQLNonNull(GraphQLString), resolve: () => "dummy!" },
-    format: {
-      type: new GraphQLNonNull(GraphQLString),
-      args: {
-        in_: { type: new GraphQLNonNull(GraphQLString) },
-      },
-      resolve: (_, { in_ }) => {
-        return in_.trim();
-      },
-    },
-    getCalculator: {
-      type: calculatorType,
-      args: {
-        left: { type: new GraphQLNonNull(GraphQLInt) },
-      },
-      resolve: (_, { left }) => {
-        return new Calculator(left);
-      },
-    },
-    getNumVisitors: {
-      type: new GraphQLNonNull(GraphQLInt),
-      resolve: () => numVisitors,
-    },
-  },
-});
-
 const mutationType = new GraphQLObjectType({
   name: "Mutation",
   fields: {
     incrementNumVisitors: {
       type: new GraphQLNonNull(GraphQLInt),
-      args: {
-        visitor: { type: visitorInputType },
-      },
+      args: {},
       resolve: (_, { visitor }) => {
         if (!visitors.includes(visitor.id)) {
           visitors.push(visitor.id);
@@ -112,13 +55,108 @@ const app = express();
 
 app.use(loggingMiddleware);
 
-const schema = new GraphQLSchema({
-  query: queryType,
-  mutation: mutationType,
+// dummy response
+const DummyQuery = extendType({
+  type: "Query",
+  definition(t) {
+    t.nonNull.string("dummy", {
+      resolve: () => "dummy!",
+    });
+  },
 });
-console.log(printSchema(schema));
 
-app.all("/graphql", createHandler({ schema }));
+// format string
+const FormatQuery = extendType({
+  type: "Query",
+  definition(t) {
+    t.nonNull.string("format", {
+      args: { in_: nonNull(stringArg()) },
+      resolve: (_, { in_ }) => in_.trim(),
+    });
+  },
+});
+
+// calculator
+const CalculatorQuery = extendType({
+  type: "Query",
+  definition(t) {
+    t.nonNull.field("getCalculator", {
+      type: "Calculator",
+      args: { left: nonNull(intArg()) },
+      resolve: (_, { left }) => new Calculator(left),
+    });
+  },
+});
+
+const CalculatorType = objectType({
+  name: "Calculator",
+  definition(t) {
+    t.int("left");
+    t.nonNull.int("add", {
+      args: { right: nonNull(intArg()) },
+      resolve: (parent, { right }) => parent.left + right,
+    });
+    t.field("sub", {
+      type: GraphQLInt,
+      args: { right: nonNull(intArg()) },
+      resolve: (parent, { right }) => parent.left - right,
+    });
+  },
+});
+
+// visitor
+const VisitorQuery = extendType({
+  type: "Query",
+  definition(t) {
+    t.nonNull.int("getNumVisitors", {
+      resolve: () => numVisitors,
+    });
+  },
+});
+
+// TODO mutation
+const VisitorInput = inputObjectType({
+  name: "VisitorInput",
+  definition(t) {
+    t.nonNull.id("id");
+  },
+});
+
+// context
+const ContextQuery = extendType({
+  type: "Query",
+  definition(t) {
+    t.nonNull.string("hostname", {
+      resolve: (_parent, _args, ctx) => ctx.hostname || "unknown",
+    });
+  },
+});
+
+const schema = makeSchema({
+  types: [
+    DummyQuery,
+    FormatQuery,
+    CalculatorQuery,
+    CalculatorType,
+    VisitorQuery,
+    VisitorInput,
+    ContextQuery,
+  ],
+  outputs: {
+    typegen: join(__dirname, "nexus-typegen.ts"),
+    schema: join(__dirname, "schema.graphql"),
+  },
+});
+
+app.all(
+  "/graphql",
+  createHandler({
+    schema,
+    context: (req) => {
+      return { hostname: req.raw.hostname };
+    },
+  }),
+);
 app.get("/", (_req, res) => {
   res.type("html");
   res.end(ruruHTML({ endopoint: "/graphql" }));
