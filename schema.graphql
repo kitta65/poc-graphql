@@ -8,6 +8,10 @@ type Calculator {
   sub(right: Int!): Int
 }
 
+type Mutation {
+  incrementNumVisitors(visitor: VisitorInput!): Int!
+}
+
 type Query {
   dummy: String!
   format(in_: String!): String!

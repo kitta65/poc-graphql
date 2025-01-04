@@ -34,6 +34,7 @@ export interface NexusGenObjects {
   Calculator: { // root type
     left?: number | null; // Int
   }
+  Mutation: {};
   Query: {};
 }
 
@@ -53,6 +54,9 @@ export interface NexusGenFieldTypes {
     left: number | null; // Int
     sub: number | null; // Int
   }
+  Mutation: { // field return type
+    incrementNumVisitors: number; // Int!
+  }
   Query: { // field return type
     dummy: string; // String!
     format: string; // String!
@@ -67,6 +71,9 @@ export interface NexusGenFieldTypeNames {
     add: 'Int'
     left: 'Int'
     sub: 'Int'
+  }
+  Mutation: { // field return type name
+    incrementNumVisitors: 'Int'
   }
   Query: { // field return type name
     dummy: 'String'
@@ -84,6 +91,11 @@ export interface NexusGenArgTypes {
     }
     sub: { // args
       right: number; // Int!
+    }
+  }
+  Mutation: {
+    incrementNumVisitors: { // args
+      visitor: NexusGenInputs['VisitorInput']; // VisitorInput!
     }
   }
   Query: {

@@ -121,6 +121,21 @@ const VisitorInput = inputObjectType({
     t.nonNull.id("id");
   },
 });
+const IncrementNumVisitors = extendType({
+  type: "Mutation",
+  definition(t) {
+    t.nonNull.int("incrementNumVisitors", {
+      args: { visitor: nonNull("VisitorInput") },
+      resolve: (_, { visitor }) => {
+        if (!visitors.includes(visitor.id)) {
+          visitors.push(visitor.id);
+          numVisitors++;
+        }
+        return numVisitors;
+      },
+    });
+  },
+});
 
 // context
 const ContextQuery = extendType({
@@ -141,6 +156,7 @@ const schema = makeSchema({
     VisitorQuery,
     VisitorInput,
     ContextQuery,
+    IncrementNumVisitors,
   ],
   outputs: {
     typegen: join(__dirname, "nexus-typegen.ts"),
