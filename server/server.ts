@@ -160,8 +160,8 @@ const schema = makeSchema({
     IncrementNumVisitors,
   ],
   outputs: {
-    typegen: join(__dirname, "..", "common", "nexus-typegen.ts"),
-    schema: join(__dirname, "..", "common", "schema.graphql"),
+    typegen: join(__dirname, "nexus-typegen.ts"),
+    schema: join(__dirname, "schema.graphql"),
   },
 });
 
