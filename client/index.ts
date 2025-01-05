@@ -1,8 +1,8 @@
 import { graphql } from "./codegen/gql";
 import type { TypedDocumentString } from "./codegen/graphql";
 const query = graphql(`
-  query MyFirstQuery {
-    dummy
+  query Format($in_: String!) {
+    format(in_: $in_)
   }
 `);
 
@@ -25,4 +25,4 @@ function execute<TResult, TVariables>(
     .then((data) => console.log(data));
 }
 
-execute(query);
+execute(query, {in_:  "  a string which contains many white spaces  " });
