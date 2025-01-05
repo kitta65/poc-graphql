@@ -6,11 +6,11 @@ const query = graphql(`
   }
 `);
 
-function execute<TResult, TVariables>(
+async function execute<TResult, TVariables>(
   query: TypedDocumentString<TResult, TVariables>,
   ...[variables]: TVariables extends Record<string, never> ? [] : [TVariables]
 ) {
-  const data = fetch("http://localhost:8888/graphql", {
+  return fetch("http://localhost:8888/graphql", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -20,9 +20,10 @@ function execute<TResult, TVariables>(
       query,
       variables,
     }),
-  })
-    .then((r) => r.json())
-    .then((data) => console.log(data));
+  }).then((r) => r.json() as TResult);
 }
 
-execute(query, {in_:  "  a string which contains many white spaces  " });
+execute(query, { in_: "  a string which contains many white spaces  " }).then(
+  // result is now typed! editor will suggest `.format` property
+  (result) => console.log(result.format),
+);
