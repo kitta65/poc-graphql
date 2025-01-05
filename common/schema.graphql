@@ -5,7 +5,7 @@
 type Calculator {
   add(right: Int!): Int!
   left: Int
-  sub(right: Int!): Int
+  sub(right: Int!): Int!
 }
 
 type Mutation {

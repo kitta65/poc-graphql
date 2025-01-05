@@ -1,8 +1,6 @@
-// @ts-nocheck
 import express from "express";
 import { createHandler } from "graphql-http/lib/use/express";
 import { ruruHTML } from "ruru/server";
-import { GraphQLObjectType, GraphQLNonNull, GraphQLInt } from "graphql";
 import {
   nonNull,
   makeSchema,
@@ -23,6 +21,8 @@ function loggingMiddleware(req, _, next) {
 }
 
 class Calculator {
+  left: number;
+
   constructor(left) {
     this.left = left;
   }
@@ -35,25 +35,7 @@ class Calculator {
   }
 }
 
-const mutationType = new GraphQLObjectType({
-  name: "Mutation",
-  fields: {
-    incrementNumVisitors: {
-      type: new GraphQLNonNull(GraphQLInt),
-      args: {},
-      resolve: (_, { visitor }) => {
-        if (!visitors.includes(visitor.id)) {
-          visitors.push(visitor.id);
-          numVisitors++;
-        }
-        return numVisitors;
-      },
-    },
-  },
-});
-
 const app = express();
-
 app.use(loggingMiddleware);
 
 // dummy response
@@ -97,8 +79,7 @@ const CalculatorType = objectType({
       args: { right: nonNull(intArg()) },
       resolve: (parent, { right }) => parent.left + right,
     });
-    t.field("sub", {
-      type: GraphQLInt,
+    t.nonNull.int("sub", {
       args: { right: nonNull(intArg()) },
       resolve: (parent, { right }) => parent.left - right,
     });
@@ -114,8 +95,6 @@ const VisitorQuery = extendType({
     });
   },
 });
-
-// TODO mutation
 const VisitorInput = inputObjectType({
   name: "VisitorInput",
   definition(t) {
@@ -176,7 +155,7 @@ app.all(
 );
 app.get("/", (_req, res) => {
   res.type("html");
-  res.end(ruruHTML({ endopoint: "/graphql" }));
+  res.end(ruruHTML({ endpoint: "/graphql" }));
 });
 
 const port = 8888;

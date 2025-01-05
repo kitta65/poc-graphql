@@ -52,7 +52,7 @@ export interface NexusGenFieldTypes {
   Calculator: { // field return type
     add: number; // Int!
     left: number | null; // Int
-    sub: number | null; // Int
+    sub: number; // Int!
   }
   Mutation: { // field return type
     incrementNumVisitors: number; // Int!
